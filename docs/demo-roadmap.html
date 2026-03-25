@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Build Faster with Cortex Code AI — Demo Roadmap</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a0a;
+            --accent-blue: #29B5E8;
+            --accent-blue-dim: rgba(41, 181, 232, 0.15);
+            --accent-blue-glow: rgba(41, 181, 232, 0.4);
+            --text-light: #ffffff;
+            --text-muted: #8a8f98;
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --font-display: 'Manrope', sans-serif;
+            --font-body: 'Manrope', sans-serif;
+            --title-size: clamp(2rem, 6vw, 5rem);
+            --h2-size: clamp(1.25rem, 3.5vw, 2.5rem);
+            --body-size: clamp(0.75rem, 1.3vw, 1.05rem);
+            --small-size: clamp(0.65rem, 1vw, 0.85rem);
+            --slide-padding: clamp(1.5rem, 4vw, 4rem);
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --duration-normal: 0.7s;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; overflow-x: hidden; }
+        html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+        body { font-family: var(--font-body); background: var(--bg-dark); color: var(--text-light); }
+
+        .slide {
+            width: 100vw; height: 100vh; height: 100dvh;
+            overflow: hidden; scroll-snap-align: start;
+            display: flex; flex-direction: column; position: relative;
+        }
+        .slide-content {
+            flex: 1; display: flex; flex-direction: column; justify-content: center;
+            max-height: 100%; overflow: hidden; padding: var(--slide-padding);
+        }
+
+        .progress-bar {
+            position: fixed; top: 0; left: 0; height: 3px;
+            background: var(--accent-blue); z-index: 100;
+            transition: width 0.3s ease; box-shadow: 0 0 10px var(--accent-blue-glow);
+        }
+        .nav-dots {
+            position: fixed; right: clamp(0.75rem, 2vw, 1.5rem); top: 50%;
+            transform: translateY(-50%); display: flex; flex-direction: column;
+            gap: clamp(6px, 1vh, 12px); z-index: 50;
+        }
+        .nav-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: rgba(255,255,255,0.2); border: none;
+            cursor: pointer; transition: all 0.3s ease; padding: 0;
+        }
+        .nav-dot.active {
+            background: var(--accent-blue);
+            box-shadow: 0 0 8px var(--accent-blue-glow); transform: scale(1.3);
+        }
+
+        .reveal {
+            opacity: 0; transform: translateY(25px);
+            transition: opacity var(--duration-normal) var(--ease-out-expo),
+                        transform var(--duration-normal) var(--ease-out-expo);
+        }
+        .slide.visible .reveal { opacity: 1; transform: translateY(0); }
+        .reveal:nth-child(1) { transition-delay: 0.05s; }
+        .reveal:nth-child(2) { transition-delay: 0.15s; }
+        .reveal:nth-child(3) { transition-delay: 0.25s; }
+        .reveal:nth-child(4) { transition-delay: 0.35s; }
+        .reveal:nth-child(5) { transition-delay: 0.45s; }
+        .reveal:nth-child(6) { transition-delay: 0.55s; }
+        .reveal:nth-child(7) { transition-delay: 0.65s; }
+
+        .title-slide .slide-content {
+            align-items: center; text-align: center;
+            gap: clamp(0.75rem, 2vh, 2rem);
+        }
+        .title-slide .overline {
+            font-size: var(--small-size); font-weight: 600;
+            letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent-blue);
+        }
+        .title-slide h1 {
+            font-family: var(--font-display); font-size: var(--title-size);
+            font-weight: 800; line-height: 1.05; letter-spacing: -0.03em;
+            max-width: min(90vw, 900px);
+        }
+        .title-slide h1 .accent { color: var(--accent-blue); }
+        .title-slide .subtitle {
+            font-size: clamp(0.85rem, 1.5vw, 1.15rem); color: var(--text-muted);
+            max-width: min(80vw, 600px); line-height: 1.5; font-weight: 400;
+        }
+        .title-accent-bar {
+            width: clamp(40px, 6vw, 80px); height: 3px;
+            background: var(--accent-blue); border-radius: 2px;
+        }
+        .title-meta { font-size: var(--small-size); color: var(--text-muted); font-weight: 500; }
+
+        .journey-slide .slide-content { gap: clamp(0.75rem, 2vh, 1.5rem); }
+        .journey-header { display: flex; align-items: baseline; gap: clamp(0.5rem, 1.5vw, 1rem); }
+        .journey-header h2 {
+            font-family: var(--font-display); font-size: var(--h2-size);
+            font-weight: 800; letter-spacing: -0.02em;
+        }
+        .journey-header .tag {
+            font-size: var(--small-size); color: var(--accent-blue);
+            font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+        }
+
+        .act-timeline {
+            display: flex; flex-direction: column;
+            gap: clamp(0.35rem, 0.8vh, 0.65rem);
+            position: relative; padding-left: clamp(2rem, 4vw, 3.5rem);
+        }
+        .act-timeline::before {
+            content: ''; position: absolute;
+            left: clamp(0.55rem, 1.2vw, 0.9rem);
+            top: clamp(0.5rem, 1vh, 1rem); bottom: clamp(0.5rem, 1vh, 1rem);
+            width: 2px; background: linear-gradient(to bottom, var(--accent-blue), var(--border-subtle));
+        }
+        .act-card {
+            display: grid; grid-template-columns: auto 1fr auto;
+            align-items: center; gap: clamp(0.5rem, 1.5vw, 1.25rem);
+            padding: clamp(0.5rem, 1vh, 0.85rem) clamp(0.75rem, 1.5vw, 1.25rem);
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle);
+            border-radius: 8px; transition: all 0.3s ease;
+            position: relative; cursor: pointer; user-select: none;
+        }
+        .act-card::before {
+            content: ''; position: absolute;
+            left: calc(-1 * clamp(1.15rem, 2.5vw, 2rem)); top: 50%;
+            width: 10px; height: 10px; border-radius: 50%;
+            background: var(--accent-blue); transform: translateY(-50%);
+            box-shadow: 0 0 8px var(--accent-blue-glow);
+        }
+        .act-card:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(41,181,232,0.3); transform: translateX(4px);
+        }
+        .act-card:active { transform: translateX(2px) scale(0.995); }
+        .act-number {
+            font-family: var(--font-display); font-size: clamp(0.85rem, 1.5vw, 1.2rem);
+            font-weight: 800; color: var(--accent-blue); min-width: clamp(1.5rem, 2.5vw, 2rem);
+        }
+        .act-info { display: flex; flex-direction: column; gap: 2px; }
+        .act-title {
+            font-family: var(--font-display); font-size: clamp(0.85rem, 1.4vw, 1.1rem);
+            font-weight: 700; line-height: 1.3;
+        }
+        .act-desc { font-size: var(--small-size); color: var(--text-muted); line-height: 1.4; }
+        .act-badge {
+            font-size: clamp(0.55rem, 0.8vw, 0.7rem); font-weight: 600;
+            letter-spacing: 0.08em; text-transform: uppercase;
+            padding: clamp(2px, 0.4vh, 4px) clamp(6px, 1vw, 10px);
+            border-radius: 4px; white-space: nowrap;
+        }
+        .act-expand-hint {
+            font-size: clamp(0.55rem, 0.7vw, 0.65rem); color: rgba(255,255,255,0.2);
+            position: absolute; right: clamp(0.75rem, 1.5vw, 1.25rem);
+            bottom: clamp(3px, 0.4vh, 6px); transition: color 0.3s ease;
+        }
+        .act-card:hover .act-expand-hint { color: rgba(41,181,232,0.5); }
+
+        .badge-cli { background: rgba(57,211,83,0.12); color: #39d353; border: 1px solid rgba(57,211,83,0.25); }
+        .badge-snowsight { background: var(--accent-blue-dim); color: var(--accent-blue); border: 1px solid rgba(41,181,232,0.25); }
+        .badge-si { background: rgba(168,85,247,0.12); color: #a855f7; border: 1px solid rgba(168,85,247,0.25); }
+
+        .promise-slide .slide-content {
+            align-items: center; text-align: center; gap: clamp(1rem, 3vh, 2.5rem);
+        }
+        .promise-slide .accent-bar {
+            width: clamp(40px, 5vw, 60px); height: 3px;
+            background: var(--accent-blue); border-radius: 2px;
+        }
+        .promise-slide blockquote {
+            font-family: var(--font-display); font-size: clamp(1.25rem, 3.5vw, 2.75rem);
+            font-weight: 800; line-height: 1.2; letter-spacing: -0.02em;
+            max-width: min(85vw, 800px);
+        }
+        .promise-slide blockquote .accent { color: var(--accent-blue); }
+        .promise-converge {
+            display: flex; align-items: center; gap: clamp(0.5rem, 1.5vw, 1.25rem);
+            flex-wrap: wrap; justify-content: center;
+        }
+        .converge-step { font-size: var(--small-size); color: var(--text-muted); font-weight: 500; }
+        .converge-arrow { font-size: var(--small-size); color: var(--accent-blue); }
+        .promise-cta {
+            font-size: clamp(0.9rem, 1.5vw, 1.1rem); color: var(--accent-blue);
+            font-weight: 700; letter-spacing: 0.05em;
+        }
+
+        .studio-bar {
+            position: absolute; top: 0; left: 0; right: 0;
+            height: clamp(3px, 0.4vh, 5px); background: var(--accent-blue);
+        }
+        .slide-number {
+            position: absolute; bottom: var(--slide-padding); right: var(--slide-padding);
+            font-size: var(--small-size); color: var(--text-muted); font-weight: 500;
+        }
+
+        /* =========================================== */
+        /* DETAIL PAGE                                  */
+        /* =========================================== */
+        #slidesContainer { transition: opacity 0.3s ease; }
+        #slidesContainer.hidden { display: none; }
+
+        #detailPage {
+            display: none; width: 100vw; min-height: 100vh; min-height: 100dvh;
+            background: var(--bg-dark); position: relative;
+        }
+        #detailPage.active { display: flex; flex-direction: column; }
+
+        .detail-top-bar {
+            position: sticky; top: 0; z-index: 10;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: clamp(0.75rem, 2vw, 1.25rem) clamp(1.25rem, 3vw, 2.5rem);
+            background: rgba(10,10,10,0.92); backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .detail-back {
+            display: flex; align-items: center; gap: 0.5rem;
+            font-family: var(--font-display); font-size: clamp(0.75rem, 1.1vw, 0.9rem);
+            font-weight: 600; color: var(--accent-blue);
+            background: none; border: 1px solid rgba(41,181,232,0.25);
+            border-radius: 6px; padding: clamp(5px, 0.6vh, 8px) clamp(10px, 1.5vw, 16px);
+            cursor: pointer; transition: all 0.2s ease;
+        }
+        .detail-back:hover { background: rgba(41,181,232,0.1); border-color: rgba(41,181,232,0.5); }
+        .detail-back svg { width: 14px; height: 14px; }
+        .detail-top-badge { display: flex; align-items: center; gap: 0.75rem; }
+        .detail-top-badge .act-badge {
+            font-size: clamp(0.6rem, 0.85vw, 0.75rem);
+            padding: clamp(3px, 0.5vh, 5px) clamp(8px, 1.2vw, 12px);
+        }
+
+        .detail-body {
+            flex: 1; padding: clamp(2rem, 4vw, 3.5rem) clamp(1.5rem, 4vw, 4rem);
+            max-width: 800px; margin: 0 auto; width: 100%;
+        }
+
+        .detail-hero { margin-bottom: clamp(2rem, 4vh, 3rem); }
+        .detail-hero-number {
+            font-family: var(--font-display); font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 800; color: rgba(41,181,232,0.12); line-height: 1;
+            letter-spacing: -0.04em;
+        }
+        .detail-hero-title {
+            font-family: var(--font-display); font-size: clamp(1.5rem, 3.5vw, 2.5rem);
+            font-weight: 800; letter-spacing: -0.02em; line-height: 1.15;
+            margin-top: clamp(-1rem, -2vw, -1.5rem);
+        }
+        .detail-hero-tagline {
+            font-size: clamp(0.85rem, 1.3vw, 1.05rem); color: var(--text-muted);
+            line-height: 1.6; margin-top: clamp(0.5rem, 1vh, 0.75rem);
+            font-style: italic; border-left: 2px solid var(--accent-blue);
+            padding-left: clamp(0.6rem, 1.2vw, 1rem);
+        }
+
+        .detail-steps { display: flex; flex-direction: column; gap: clamp(0.75rem, 1.5vh, 1.25rem); }
+
+        .detail-step {
+            display: grid; grid-template-columns: clamp(2rem, 3.5vw, 2.75rem) 1fr;
+            gap: clamp(0.75rem, 1.5vw, 1.25rem);
+            padding: clamp(0.75rem, 1.5vh, 1.25rem) clamp(1rem, 2vw, 1.5rem);
+            background: rgba(255,255,255,0.025); border: 1px solid var(--border-subtle);
+            border-radius: 8px; transition: all 0.3s ease;
+            opacity: 0; transform: translateY(15px);
+            animation: stepReveal 0.5s var(--ease-out-expo) forwards;
+        }
+        .detail-step:nth-child(1) { animation-delay: 0.1s; }
+        .detail-step:nth-child(2) { animation-delay: 0.17s; }
+        .detail-step:nth-child(3) { animation-delay: 0.24s; }
+        .detail-step:nth-child(4) { animation-delay: 0.31s; }
+        .detail-step:nth-child(5) { animation-delay: 0.38s; }
+        .detail-step:nth-child(6) { animation-delay: 0.45s; }
+        .detail-step:nth-child(7) { animation-delay: 0.52s; }
+
+        @keyframes stepReveal {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .detail-step:hover { border-color: rgba(41,181,232,0.2); background: rgba(255,255,255,0.04); }
+
+        .step-num {
+            font-family: var(--font-display); font-size: clamp(0.9rem, 1.4vw, 1.15rem);
+            font-weight: 800; color: var(--accent-blue); padding-top: 2px;
+        }
+        .step-content { display: flex; flex-direction: column; gap: 3px; }
+        .step-title {
+            font-family: var(--font-display); font-size: clamp(0.85rem, 1.3vw, 1.05rem);
+            font-weight: 700; line-height: 1.3;
+        }
+        .step-desc {
+            font-size: clamp(0.75rem, 1.1vw, 0.9rem); color: var(--text-muted);
+            line-height: 1.55;
+        }
+
+        .detail-footer {
+            margin-top: clamp(2rem, 4vh, 3rem);
+            padding-top: clamp(1.5rem, 3vh, 2rem);
+            border-top: 1px solid var(--border-subtle);
+            text-align: center;
+        }
+        .detail-footer-back {
+            font-family: var(--font-display); font-size: clamp(0.8rem, 1.2vw, 0.95rem);
+            font-weight: 600; color: var(--accent-blue); cursor: pointer;
+            background: none; border: none; transition: opacity 0.2s ease;
+        }
+        .detail-footer-back:hover { opacity: 0.7; }
+
+        @media (max-height: 700px) {
+            :root {
+                --slide-padding: clamp(0.75rem, 3vw, 2rem);
+                --title-size: clamp(1.5rem, 5vw, 3rem);
+                --h2-size: clamp(1.1rem, 3vw, 2rem);
+            }
+            .act-card { padding: clamp(0.35rem, 0.7vh, 0.6rem) clamp(0.5rem, 1vw, 0.9rem); }
+        }
+        @media (max-height: 600px) {
+            :root {
+                --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+                --title-size: clamp(1.25rem, 4.5vw, 2.25rem);
+            }
+            .nav-dots, .slide-number { display: none; }
+            .act-timeline { gap: clamp(0.2rem, 0.5vh, 0.4rem); }
+            .act-expand-hint { display: none; }
+        }
+        @media (max-width: 600px) {
+            .act-card { grid-template-columns: auto 1fr; }
+            .act-badge { grid-column: 1 / -1; justify-self: start; }
+            .promise-converge { flex-direction: column; gap: 0.25rem; }
+            .converge-arrow { display: none; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.2s !important; }
+            html { scroll-behavior: auto; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+<nav class="nav-dots" id="navDots"></nav>
+
+<div id="slidesContainer">
+
+<section class="slide title-slide" data-slide="0">
+    <div class="studio-bar"></div>
+    <div class="slide-content">
+        <span class="overline reveal">Virtual Hands-On Lab</span>
+        <h1 class="reveal">Build Faster with <span class="accent">Cortex Code</span></h1>
+        <div class="title-accent-bar reveal"></div>
+        <p class="subtitle reveal">One AI assistant guides you from raw source data to conversational business answers — no documentation hunting, no boilerplate, no context switching.</p>
+        <span class="title-meta reveal">5 Acts &middot; 3 Interfaces &middot; 1 Continuous Workflow</span>
+    </div>
+    <span class="slide-number">01 / 03</span>
+</section>
+
+<section class="slide journey-slide" data-slide="1">
+    <div class="studio-bar"></div>
+    <div class="slide-content">
+        <div class="journey-header reveal">
+            <h2>The Demo</h2>
+            <span class="tag">5 Acts &middot; Click to explore</span>
+        </div>
+        <div class="act-timeline">
+            <div class="act-card reveal" data-act="0">
+                <span class="act-number">01</span>
+                <div class="act-info">
+                    <span class="act-title">Ingestion — Openflow Connector</span>
+                    <span class="act-desc">Deploy a SQL Server connector. Raw data begins flowing into Snowflake.</span>
+                </div>
+                <span class="act-badge badge-cli">CLI</span>
+                <span class="act-expand-hint">click for details</span>
+            </div>
+            <div class="act-card reveal" data-act="1">
+                <span class="act-number">02</span>
+                <div class="act-info">
+                    <span class="act-title">Explore, Model & Transform</span>
+                    <span class="act-desc">Profile the data, co-create a modeling plan, build the full dbt project.</span>
+                </div>
+                <span class="act-badge badge-snowsight">Snowsight</span>
+                <span class="act-expand-hint">click for details</span>
+            </div>
+            <div class="act-card reveal" data-act="2">
+                <span class="act-number">03</span>
+                <div class="act-info">
+                    <span class="act-title">Semantic View — Business Logic</span>
+                    <span class="act-desc">Define facts, dimensions, metrics, and relationships the business understands.</span>
+                </div>
+                <span class="act-badge badge-snowsight">Snowsight</span>
+                <span class="act-expand-hint">click for details</span>
+            </div>
+            <div class="act-card reveal" data-act="3">
+                <span class="act-number">04</span>
+                <div class="act-info">
+                    <span class="act-title">Cortex Agent — Wire the Interface</span>
+                    <span class="act-desc">Create a conversational agent pointed at the semantic view.</span>
+                </div>
+                <span class="act-badge badge-snowsight">Snowsight</span>
+                <span class="act-expand-hint">click for details</span>
+            </div>
+            <div class="act-card reveal" data-act="4">
+                <span class="act-number">05</span>
+                <div class="act-info">
+                    <span class="act-title">The Payoff — Chat with Your Data</span>
+                    <span class="act-desc">Ask business questions in plain English. The full circle is complete.</span>
+                </div>
+                <span class="act-badge badge-si">Intelligence</span>
+                <span class="act-expand-hint">click for details</span>
+            </div>
+        </div>
+    </div>
+    <span class="slide-number">02 / 03</span>
+</section>
+
+<section class="slide promise-slide" data-slide="2">
+    <div class="studio-bar"></div>
+    <div class="slide-content">
+        <div class="accent-bar reveal"></div>
+        <blockquote class="reveal">What used to take <span class="accent">days</span> collapses into one continuous, AI-assisted workflow.</blockquote>
+        <div class="promise-converge reveal">
+            <span class="converge-step">SQL Server</span>
+            <span class="converge-arrow">&rarr;</span>
+            <span class="converge-step">Openflow</span>
+            <span class="converge-arrow">&rarr;</span>
+            <span class="converge-step">dbt</span>
+            <span class="converge-arrow">&rarr;</span>
+            <span class="converge-step">Semantic View</span>
+            <span class="converge-arrow">&rarr;</span>
+            <span class="converge-step">Cortex Agent</span>
+            <span class="converge-arrow">&rarr;</span>
+            <span class="converge-step" style="color: var(--accent-blue); font-weight: 700;">Answers</span>
+        </div>
+        <p class="promise-cta reveal">Let's build it. &darr;</p>
+    </div>
+    <span class="slide-number">03 / 03</span>
+</section>
+
+</div>
+
+<div id="detailPage">
+    <div class="detail-top-bar">
+        <button class="detail-back" onclick="closeDetail()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+            Back to Overview
+        </button>
+        <div class="detail-top-badge" id="detailTopBadge"></div>
+    </div>
+    <div class="detail-body" id="detailBody"></div>
+</div>
+
+<script>
+const ACT_DETAILS = [
+    {
+        number: '01', title: 'Ingestion — Openflow Connector',
+        badge: '<span class="act-badge badge-cli">CLI</span>',
+        tagline: 'This is infrastructure-as-conversation. CoCo removes the Openflow learning curve entirely.',
+        steps: [
+            { title: 'Create nipyapi Profile', desc: 'Connect the CLI tooling to the Openflow runtime with a bearer token and API endpoint.' },
+            { title: 'Network Access (EAI)', desc: 'Create a network rule and External Access Integration so the SPCS runtime can reach SQL Server.' },
+            { title: 'Deploy Connector Flow', desc: 'Run nipyapi ci deploy_flow to scaffold the full CDC pipeline from the connector registry.' },
+            { title: 'Configure Parameters', desc: 'Set connection URL, credentials, destination database, warehouse, role, table selection, and ingestion type in one command.' },
+            { title: 'Upload JDBC Driver', desc: 'Attach the Microsoft SQL Server JDBC driver as an asset — not bundled by default.' },
+            { title: 'Enable Controllers & Start', desc: 'Enable all controller services, start the flow. Data begins replicating from SQL Server into Snowflake.' },
+            { title: 'Validate in Snowflake', desc: 'Confirm 5 tables landed in CDC_TARGET.CARDOPS with expected row counts: Accounts (50), Merchants (30), Transactions, Disputes, FraudAlerts.' }
+        ]
+    },
+    {
+        number: '02', title: 'Explore, Model & Transform',
+        badge: '<span class="act-badge badge-snowsight">Snowsight</span>',
+        tagline: 'CoCo doesn\'t just describe data — it reasons about how to model it, then builds it.',
+        steps: [
+            { title: 'Schema Profiling', desc: 'Row counts, column inventory, null rates, and distinct counts for all 5 CDC tables. Spot data quality issues early.' },
+            { title: 'Relationship Mapping', desc: 'Discover join keys across tables, validate cardinality (1:1, 1:many), check for orphaned records from CDC timing gaps.' },
+            { title: 'Data Distribution Analysis', desc: 'Profile categorical distributions (status fields, channels, risk tiers), numeric ranges, and volume patterns across fact tables.' },
+            { title: 'Synthesis & Modeling Proposal', desc: 'CoCo synthesizes findings into a concrete modeling plan: staging layer (1:1 clean copies), mart layer (star schema with fact + dimension tables).' },
+            { title: 'Approval Gate', desc: 'Human reviews the proposed plan before any code is written. CoCo waits for explicit approval — the human stays in the loop.' },
+            { title: 'Full dbt Build', desc: 'CoCo generates the complete dbt project: staging models, mart models, YAML configs, ref() chains, and the generate_schema_name macro fix.' }
+        ]
+    },
+    {
+        number: '03', title: 'Semantic View — Business Logic',
+        badge: '<span class="act-badge badge-snowsight">Snowsight</span>',
+        tagline: 'This is the layer that makes the Cortex Agent trustworthy — garbage semantics = garbage answers.',
+        steps: [
+            { title: 'Install dbt_semantic_view Package', desc: 'Add Snowflake-Labs/dbt_semantic_view v1.0.3 to packages.yml, then run dbt deps to install.' },
+            { title: 'Fix Schema Generation', desc: 'Create a custom generate_schema_name macro to prevent dbt from producing ANALYTICS_ANALYTICS as the target schema.' },
+            { title: 'Define Tables & Relationships', desc: 'Register mart models using ref() in the TABLES clause. Map every validated FK join in RELATIONSHIPS.' },
+            { title: 'Declare Facts & Dimensions', desc: 'Facts: numeric columns you aggregate (amounts, scores). Dimensions: columns you group/filter by (status, channel, region, timestamps).' },
+            { title: 'Build & Validate', desc: 'Run dbt build to materialize the semantic view. Validate with SHOW SEMANTIC VIEWS and a test query using the SEMANTIC_VIEW() function.' }
+        ]
+    },
+    {
+        number: '04', title: 'Cortex Agent — Wire the Interface',
+        badge: '<span class="act-badge badge-snowsight">Snowsight</span>',
+        tagline: 'All the upstream work — ingestion, modeling, semantic definition — converges here.',
+        steps: [
+            { title: 'Setup SI Schema', desc: 'Create SNOWFLAKE_INTELLIGENCE.AGENTS schema with proper grants. Agents must live here to appear in the Intelligence UI.' },
+            { title: 'Create the Agent', desc: 'Run CREATE AGENT with a YAML specification: orchestration model, instructions, sample questions, cortex_analyst_text_to_sql tool, and semantic view reference.' },
+            { title: 'Grant Access', desc: 'Grant USAGE on the agent and SELECT on the semantic view to PUBLIC so anyone in the org can interact with it.' },
+            { title: 'Validate', desc: 'SHOW AGENTS, DESC AGENT to confirm the spec. Then open Snowflake Intelligence — the agent should appear with suggested prompts ready to go.' }
+        ]
+    },
+    {
+        number: '05', title: 'The Payoff — Chat with Your Data',
+        badge: '<span class="act-badge badge-si">Intelligence</span>',
+        tagline: 'Everything we built collapses into a chat box.',
+        steps: [
+            { title: 'Open Snowflake Intelligence', desc: 'Navigate to AI & ML in Snowsight. Your agent appears in the list with the display name and description you defined.' },
+            { title: 'See Your Sample Questions', desc: 'The suggested prompts you configured in Act 4 are front and center — users know exactly what to ask.' },
+            { title: 'Ask Business Questions', desc: 'Type natural language questions. The agent converts them to SQL via the semantic view, executes, and returns data-grounded answers.' },
+            { title: 'The Full Circle', desc: 'SQL Server \u2192 Openflow \u2192 dbt \u2192 Semantic View \u2192 Cortex Agent \u2192 plain-English answers. Anyone in the org — not just engineers — can get answers now.' }
+        ]
+    }
+];
+
+let detailActive = false;
+
+function openDetail(idx) {
+    const act = ACT_DETAILS[idx];
+    detailActive = true;
+    window.location.hash = 'act-' + (idx + 1);
+
+    document.getElementById('detailTopBadge').innerHTML = act.badge;
+
+    let html = '<div class="detail-hero">';
+    html += '<div class="detail-hero-number">Act ' + act.number + '</div>';
+    html += '<div class="detail-hero-title">' + act.title + '</div>';
+    html += '<div class="detail-hero-tagline">' + act.tagline + '</div>';
+    html += '</div>';
+
+    html += '<div class="detail-steps">';
+    act.steps.forEach((s, i) => {
+        html += '<div class="detail-step">';
+        html += '<span class="step-num">' + String(i + 1).padStart(2, '0') + '</span>';
+        html += '<div class="step-content">';
+        html += '<div class="step-title">' + s.title + '</div>';
+        html += '<div class="step-desc">' + s.desc + '</div>';
+        html += '</div></div>';
+    });
+    html += '</div>';
+
+    html += '<div class="detail-footer"><button class="detail-footer-back" onclick="closeDetail()">&larr; Back to Demo Overview</button></div>';
+
+    document.getElementById('detailBody').innerHTML = html;
+    document.getElementById('slidesContainer').classList.add('hidden');
+    document.getElementById('detailPage').classList.add('active');
+    document.getElementById('progressBar').style.display = 'none';
+    document.getElementById('navDots').style.display = 'none';
+    window.scrollTo(0, 0);
+}
+
+function closeDetail() {
+    detailActive = false;
+    history.pushState(null, '', window.location.pathname);
+    document.getElementById('detailPage').classList.remove('active');
+    document.getElementById('slidesContainer').classList.remove('hidden');
+    document.getElementById('progressBar').style.display = '';
+    document.getElementById('navDots').style.display = '';
+    document.querySelector('.journey-slide').scrollIntoView({ behavior: 'instant' });
+}
+
+window.addEventListener('hashchange', () => {
+    const hash = window.location.hash;
+    if (hash.startsWith('#act-')) {
+        const idx = parseInt(hash.replace('#act-', '')) - 1;
+        if (idx >= 0 && idx < ACT_DETAILS.length) openDetail(idx);
+    } else if (detailActive) {
+        closeDetail();
+    }
+});
+
+window.addEventListener('load', () => {
+    const hash = window.location.hash;
+    if (hash.startsWith('#act-')) {
+        const idx = parseInt(hash.replace('#act-', '')) - 1;
+        if (idx >= 0 && idx < ACT_DETAILS.length) openDetail(idx);
+    }
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && detailActive) closeDetail();
+});
+
+document.querySelectorAll('.act-card[data-act]').forEach(card => {
+    card.addEventListener('click', () => openDetail(parseInt(card.dataset.act)));
+});
+
+class SlidePresentation {
+    constructor() {
+        this.slides = document.querySelectorAll('.slide');
+        this.progressBar = document.getElementById('progressBar');
+        this.navDots = document.getElementById('navDots');
+        this.currentSlide = 0;
+        this.init();
+    }
+    init() {
+        this.createNavDots();
+        this.setupObserver();
+        this.setupKeyboard();
+        this.updateProgress();
+    }
+    createNavDots() {
+        this.slides.forEach((_, i) => {
+            const dot = document.createElement('button');
+            dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+            dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+            dot.addEventListener('click', () => this.slides[i].scrollIntoView({ behavior: 'smooth' }));
+            this.navDots.appendChild(dot);
+        });
+    }
+    setupObserver() {
+        const obs = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    this.currentSlide = parseInt(entry.target.dataset.slide);
+                    this.updateProgress();
+                    this.updateDots();
+                }
+            });
+        }, { threshold: 0.5 });
+        this.slides.forEach(s => obs.observe(s));
+    }
+    setupKeyboard() {
+        document.addEventListener('keydown', (e) => {
+            if (detailActive) return;
+            if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault(); this.goToSlide(this.currentSlide + 1);
+            } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                e.preventDefault(); this.goToSlide(this.currentSlide - 1);
+            }
+        });
+    }
+    goToSlide(idx) {
+        if (idx >= 0 && idx < this.slides.length) this.slides[idx].scrollIntoView({ behavior: 'smooth' });
+    }
+    updateProgress() {
+        this.progressBar.style.width = ((this.currentSlide + 1) / this.slides.length) * 100 + '%';
+    }
+    updateDots() {
+        this.navDots.querySelectorAll('.nav-dot').forEach((d, i) => d.classList.toggle('active', i === this.currentSlide));
+    }
+}
+new SlidePresentation();
+</script>
+</body>
+</html>
