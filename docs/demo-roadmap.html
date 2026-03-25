@@ -169,6 +169,49 @@
         .badge-snowsight { background: var(--accent-blue-dim); color: var(--accent-blue); border: 1px solid rgba(41,181,232,0.25); }
         .badge-si { background: rgba(168,85,247,0.12); color: #a855f7; border: 1px solid rgba(168,85,247,0.25); }
 
+        .trust-slide .slide-content {
+            gap: clamp(1rem, 2.5vh, 2rem);
+        }
+        .trust-slide .slide-content h2 {
+            font-family: var(--font-display); font-size: var(--h2-size);
+            font-weight: 800; letter-spacing: -0.02em;
+        }
+        .trust-slide .slide-content h2 .accent { color: var(--accent-blue); }
+        .trust-pillars {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: clamp(0.75rem, 1.5vw, 1.25rem);
+            width: 100%; max-width: 900px;
+        }
+        .trust-card {
+            padding: clamp(1rem, 2vh, 1.5rem) clamp(1rem, 2vw, 1.5rem);
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle);
+            border-radius: 8px; display: flex; flex-direction: column;
+            gap: clamp(0.4rem, 0.8vh, 0.6rem);
+        }
+        .trust-icon {
+            font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+            width: clamp(2rem, 4vw, 2.75rem); height: clamp(2rem, 4vw, 2.75rem);
+            display: flex; align-items: center; justify-content: center;
+            background: var(--accent-blue-dim); border-radius: 8px;
+        }
+        .trust-card h3 {
+            font-family: var(--font-display); font-size: clamp(0.85rem, 1.3vw, 1.05rem);
+            font-weight: 700;
+        }
+        .trust-card p {
+            font-size: clamp(0.7rem, 1vw, 0.85rem); color: var(--text-muted);
+            line-height: 1.5;
+        }
+        .trust-footer {
+            font-size: clamp(0.65rem, 0.9vw, 0.78rem); color: var(--text-muted);
+            max-width: 700px; line-height: 1.5; text-align: center;
+        }
+        .trust-footer a { color: var(--accent-blue); text-decoration: none; }
+        .trust-footer a:hover { text-decoration: underline; }
+        @media (max-width: 600px) {
+            .trust-pillars { grid-template-columns: 1fr; }
+        }
+
         .promise-slide .slide-content {
             align-items: center; text-align: center; gap: clamp(1rem, 3vh, 2.5rem);
         }
@@ -358,7 +401,7 @@
         <p class="subtitle reveal">One AI assistant guides you from raw source data to conversational business answers — no documentation hunting, no boilerplate, no context switching.</p>
         <span class="title-meta reveal">5 Acts &middot; 3 Interfaces &middot; 1 Continuous Workflow</span>
     </div>
-    <span class="slide-number">01 / 03</span>
+    <span class="slide-number">01 / 04</span>
 </section>
 
 <section class="slide journey-slide" data-slide="1">
@@ -416,10 +459,40 @@
             </div>
         </div>
     </div>
-    <span class="slide-number">02 / 03</span>
+    <span class="slide-number">02 / 04</span>
 </section>
 
-<section class="slide promise-slide" data-slide="2">
+<section class="slide trust-slide" data-slide="2">
+    <div class="studio-bar"></div>
+    <div class="slide-content" style="align-items: center; text-align: center;">
+        <h2 class="reveal">Built on <span class="accent">Trust</span></h2>
+        <div class="trust-pillars">
+            <div class="trust-card reveal">
+                <div class="trust-icon">🔒</div>
+                <h3>Data Never Leaves</h3>
+                <p>All AI models run inside Snowflake's security &amp; governance perimeter. Your data is never available to other customers or model developers.</p>
+            </div>
+            <div class="trust-card reveal">
+                <div class="trust-icon">🚫</div>
+                <h3>No Training on Your Data</h3>
+                <p>Snowflake never uses your Customer Data to train models made available to our customer base. Full stop.</p>
+            </div>
+            <div class="trust-card reveal">
+                <div class="trust-icon">🛡️</div>
+                <h3>You Stay in Control</h3>
+                <p>Familiar RBAC controls govern AI feature access. Cortex Code adds a three-tier permission model — Confirm, Plan, or Bypass — plus OS-level sandboxing.</p>
+            </div>
+        </div>
+        <p class="trust-footer reveal">
+            Cortex Code classifies inputs/outputs as <strong style="color: var(--text-light);">Usage Data &rarr; Customer Data &rarr; Covered AI Features</strong>.
+            Use <code style="color: var(--accent-blue);">--private</code> mode to disable session saving. Enterprise admins can enforce policy via managed settings.
+            <br><a href="https://docs.snowflake.com/en/user-guide/cortex-code/security" target="_blank">Security best practices</a> &middot; <a href="https://docs.snowflake.com/en/guides-overview-ai-features" target="_blank">AI &amp; ML overview</a>
+        </p>
+    </div>
+    <span class="slide-number">03 / 04</span>
+</section>
+
+<section class="slide promise-slide" data-slide="3">
     <div class="studio-bar"></div>
     <div class="slide-content">
         <div class="accent-bar reveal"></div>
@@ -439,7 +512,7 @@
         </div>
         <p class="promise-cta reveal">Let's build it. &darr;</p>
     </div>
-    <span class="slide-number">03 / 03</span>
+    <span class="slide-number">04 / 04</span>
 </section>
 
 </div>
