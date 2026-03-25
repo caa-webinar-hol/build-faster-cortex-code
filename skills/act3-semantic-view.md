@@ -69,14 +69,18 @@ The rest of the file is **not SQL** — it's a declarative definition using thes
 
 ### TABLES — Register your mart models
 
-Alias each model you want in the semantic view using `{{ ref() }}`:
+Alias each model you want in the semantic view using `{{ ref() }}`. **Each table MUST declare a PRIMARY KEY** — the semantic view requires this to validate relationships.
 
 ```sql
 TABLES(
-    t1 AS {{ ref('my_fact_table') }},
+    t1 AS {{ ref('my_fact_table') }}
+        PRIMARY KEY (TRANSACTION_ID),
     t2 AS {{ ref('my_dimension_table') }}
+        PRIMARY KEY (ACCOUNT_ID)
 )
 ```
+
+> **CRITICAL:** If you omit `PRIMARY KEY`, the build will fail when referenced columns are used in RELATIONSHIPS. Always declare the primary key for every table.
 
 **Design guidance:** Include all fact and dimension tables from your star schema. Use short aliases — you'll reference them throughout.
 
@@ -126,16 +130,18 @@ DIMENSIONS(
 
 ### METRICS — Pre-defined aggregations
 
-Define named calculations the agent can use directly:
+Define named calculations the agent can use directly. **Metrics reference the logical names (left side of AS) from your FACTS and DIMENSIONS declarations, NOT the underlying column names.**
 
 ```sql
 METRICS(
-    t1.total_amount AS SUM(t1.amount),
-    t1.avg_amount AS AVG(t1.amount),
-    t1.record_count AS COUNT(t1.id),
-    t1.high_score_count AS COUNT_IF(t1.score > 80)
+    t1.total_amount AS SUM(t1.TXN_AMOUNT),
+    t1.avg_amount AS AVG(t1.TXN_AMOUNT),
+    t1.record_count AS COUNT(t1.TXN_ID),
+    t1.high_score_count AS COUNT_IF(t1.RISK_SCORE > 80)
 )
 ```
+
+> **IMPORTANT:** In the metric expression (right side of AS), use `<alias>.<LOGICAL_NAME>` where `LOGICAL_NAME` is the left side of AS from your FACTS/DIMENSIONS declarations. For example, if you declared `t1.TXN_AMOUNT AS AMOUNT` in FACTS, reference it as `t1.TXN_AMOUNT` in METRICS.
 
 **Design guidance:** Think about the business questions from your Act 2 analysis. Each insight you surfaced — "approval rate by channel," "disputes per risk tier," "top merchants by volume" — implies one or more metrics. Define them here so the Cortex Agent can answer those questions directly.
 
@@ -151,16 +157,27 @@ COMMENT='Description of what this semantic view covers and its purpose.'
 {{ config(materialized='semantic_view') }}
 
 TABLES(
-    t1 AS {{ ref('base_table') }},
-    t2 AS {{ source('my_source', 'other_table') }}
+    t1 AS {{ ref('fct_orders') }}
+        PRIMARY KEY (ORDER_ID),
+    t2 AS {{ ref('dim_customers') }}
+        PRIMARY KEY (CUSTOMER_ID)
+)
+RELATIONSHIPS(
+    t1(CUSTOMER_ID) REFERENCES t2
+)
+FACTS(
+    t1.ORDER_TOTAL AS ORDER_TOTAL,
+    t1.ITEM_COUNT AS ITEM_COUNT
 )
 DIMENSIONS(
-    t1.ROW_COUNT AS COUNT,
-    t2.TRADE_VOLUME AS VOLUME
+    t1.ORDER_STATUS AS ORDER_STATUS,
+    t2.CUSTOMER_NAME AS CUSTOMER_NAME,
+    t1.ORDER_DATE AS ORDER_DATE
 )
 METRICS(
-    t1.total_rows AS SUM(t1.count),
-    t2.max_volume AS MAX(t2.volume)
+    t1.total_revenue AS SUM(t1.ORDER_TOTAL),
+    t1.avg_order_size AS AVG(t1.ORDER_TOTAL),
+    t1.order_count AS COUNT(t1.ORDER_TOTAL)
 )
 COMMENT='example semantic view'
 ```
@@ -219,6 +236,8 @@ FROM SEMANTIC_VIEW(CDC_TARGET.ANALYTICS.<YOUR_SEMANTIC_VIEW_NAME>
 | Model materializes in `ANALYTICS_ANALYTICS` | Missing `generate_schema_name` macro | Create `macros/generate_schema_name.sql` per Step 2 |
 | `Object does not exist` in TABLES clause | Mart models not built or wrong schema | Run `dbt build` for mart models first |
 | Column name mismatch | Case sensitivity | Snowflake stores unquoted identifiers as uppercase — use `AMOUNT` not `amount` |
+| `Referenced column not found` or PK error | Missing PRIMARY KEY in TABLES | Every table in TABLES() must declare `PRIMARY KEY (col)` |
+| Metric references wrong column | Using column name instead of logical name | Metrics must reference the logical name (left side of AS in FACTS/DIMENSIONS), not the underlying column name |
 | `invalid identifier 'VALUE'` | Wrong FACTS/DIMENSIONS syntax | The right side of `AS` must be the actual column name, not the word `value`. Use `t1.TXN_AMOUNT AS AMOUNT`, not `t1.AMOUNT AS value` |
 | `RELATIONSHIPS` syntax error | Wrong format | `alias(COLUMN) REFERENCES other_alias(COLUMN)` — no `ON` keyword |
 | `SHOW SEMANTIC VIEWS` returns nothing | Wrong schema context | Use `SHOW SEMANTIC VIEWS IN SCHEMA CDC_TARGET.ANALYTICS` |
