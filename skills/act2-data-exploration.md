@@ -18,12 +18,17 @@ This is Act 2 of a live presentation. Act 1 deployed the Openflow connector. Act
 
 ### Identifiers
 
-All schema and table names are uppercase — no quoting required:
+Database, schema, and table names are uppercase — no quoting required. However, **column names are mixed-case** because they were replicated from SQL Server via Openflow. You **MUST double-quote all column names** in every SQL query to avoid case-sensitivity errors.
 
 ```sql
+-- Table references: no quoting needed
 SELECT * FROM CDC_TARGET.CARDOPS.ACCOUNTS LIMIT 10;
-SELECT * FROM CDC_TARGET.CARDOPS.TRANSACTIONS LIMIT 10;
+
+-- Column references: ALWAYS double-quote
+SELECT "AccountID", "Balance", "Status" FROM CDC_TARGET.CARDOPS.ACCOUNTS LIMIT 10;
 ```
+
+**CRITICAL:** Before writing any column-level SQL, first retrieve the exact column names from `INFORMATION_SCHEMA.COLUMNS` and use those names with double quotes. Do NOT guess column names or use unquoted uppercase versions — they will fail.
 
 ## Source Tables
 
@@ -82,20 +87,27 @@ ORDER BY ordinal_position;
 
 ### 1c. Null Rates and Distinct Counts
 
+**IMPORTANT:** Column names are mixed-case from SQL Server. You MUST:
+1. First query `INFORMATION_SCHEMA.COLUMNS` to get the exact column names for each table
+2. Use those exact names wrapped in double quotes (`"ColumnName"`) in all generated SQL
+
 For each table, generate and run a query that checks null rate and distinct count for every column:
 
 ```sql
+-- Example using actual mixed-case column names (get real names from INFORMATION_SCHEMA first)
 SELECT
-    '<column>' AS column_name,
+    'AccountID' AS column_name,
     COUNT(*) AS total_rows,
-    COUNT("<column>") AS non_null,
-    COUNT(*) - COUNT("<column>") AS null_count,
-    ROUND(100.0 * (COUNT(*) - COUNT("<column>")) / NULLIF(COUNT(*), 0), 1) AS null_pct,
-    COUNT(DISTINCT "<column>") AS distinct_count
-FROM CDC_TARGET.CARDOPS.<TABLE_NAME>;
+    COUNT("AccountID") AS non_null,
+    COUNT(*) - COUNT("AccountID") AS null_count,
+    ROUND(100.0 * (COUNT(*) - COUNT("AccountID")) / NULLIF(COUNT(*), 0), 1) AS null_pct,
+    COUNT(DISTINCT "AccountID") AS distinct_count
+FROM CDC_TARGET.CARDOPS.ACCOUNTS
+UNION ALL
+-- ... repeat for each column, always double-quoting the column name
 ```
 
-Build this dynamically for all columns in a single query using UNION ALL.
+Build this dynamically for all columns in a single query using UNION ALL. **Every column reference must be double-quoted.**
 
 ### Present Findings
 
@@ -115,6 +127,8 @@ The CDC tables have no foreign key constraints in Snowflake — you need to **di
 ### 2a. Discover Potential Join Keys
 
 Look at the column names and types across all 5 tables from Phase 1. Identify columns that appear in multiple tables (shared naming patterns like `*ID` columns, matching data types). These are your candidate join keys.
+
+**Reminder:** All column references in SQL must be double-quoted (e.g., `"AccountID"`, `"MerchantID"`). Use the exact mixed-case names from `INFORMATION_SCHEMA.COLUMNS`.
 
 ### 2b. Validate Candidate Joins
 
